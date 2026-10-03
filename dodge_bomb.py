@@ -1,6 +1,7 @@
 import os
 import sys
 import pygame as pg
+import time
 
 #練習３：画面サイズを変更
 WIDTH, HEIGHT = 800, 600
@@ -19,6 +20,35 @@ def check_bound(obj_rect: pg.Rect) -> tuple[bool, bool]:
     if obj_rect.top < 0 or HEIGHT < obj_rect.bottom:
         tate = False
     return yoko, tate
+
+#演習問題１：ゲームオーバー関数
+def game_over(screen: pg.Surface) -> None:
+    #黒背景作成
+    scr = pg.Surface((WIDTH, HEIGHT))
+    scr.fill((0, 0, 0))
+    scr.set_alpha(220)
+
+    #文字の表示
+    font = pg.font.Font(None, 80)
+    text = font.render("Game Over", True, (255, 255, 255))
+    text_rct = text.get_rect()
+    text_rct.center = WIDTH // 2, HEIGHT // 2
+
+    #左のこうかとん
+    scr.blit(text, text_rct)
+    gok_img = pg.image.load("fig/8.png") 
+    gok_rct = gok_img.get_rect()
+    gok_rct.center =  200, 300
+    scr.blit(gok_img, gok_rct)
+    #右のこうかとん
+    gok_rct2 = gok_img.get_rect()
+    gok_rct2.center = 600, 300
+    scr.blit(gok_img, gok_rct2)
+
+    screen.blit(scr, [0, 0])
+    #時間の設定
+    pg.display.update()
+    time.sleep(5)
 
 def main():
     pg.display.set_caption("逃げろ！こうかとん")
@@ -81,7 +111,9 @@ def main():
             vy *= -1
         screen.blit(bb_img, bb_rct)
 
+        #練習４：衝突したら終了する
         if kk_rct.colliderect(bb_rct):
+            game_over(screen) #ここで呼び出す
             return
 
         pg.display.update()
