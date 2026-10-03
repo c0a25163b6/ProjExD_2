@@ -50,6 +50,22 @@ def game_over(screen: pg.Surface) -> None:
     pg.display.update()
     time.sleep(5)
 
+#演習課題２
+def init_bb_imgs() -> tuple[list[pg.Surface], list[int]]:
+    bb_imgs = [] #爆弾用のリスト
+
+    #上昇段階は10段階
+    for r in range(1, 11):
+        bb_img = pg.Surface((20 * r, 20 * r))
+        
+        bb_img.set_colorkey((0, 0, 0)) 
+        pg.draw.circle(bb_img, (255, 0, 0), (10 * r, 10 * r), 10 * r)
+        bb_imgs.append(bb_img)
+        
+    bb_accs = [a * 0.5 for a in range(1, 11)] #加速度のリスト
+    
+    return bb_imgs, bb_accs
+
 def main():
     pg.display.set_caption("逃げろ！こうかとん")
     screen = pg.display.set_mode((WIDTH, HEIGHT))
@@ -68,16 +84,12 @@ def main():
     }
 
     #練習２：赤い爆弾を作成
-    bb_img = pg.Surface((20, 20))
-    pg.draw.circle(bb_img, (255, 0, 0), (10, 10), 10)
-    bb_img.set_colorkey((0, 0, 0))
+    bb_imgs, bb_accs = init_bb_imgs()
 
+    vx, vy = +5, +5
+    bb_img = bb_imgs[0]
     bb_rct = bb_img.get_rect()
-    bb_rct.center = 500, 300
-
-    #練習２：初期値座標
-    vx = +5
-    vy = +5
+    bb_rct.center = 400, 300
 
     tmr = 0
     while True:
@@ -102,8 +114,18 @@ def main():
             kk_rct.move_ip(-sum_mv[0], -sum_mv[1])
         screen.blit(kk_img, kk_rct)
 
+        #先にiで獲得しておく
+        i = min(tmr //500, 9)
+        bb_img = bb_imgs[i]
+        #画像サイズ
+        bb_rct.width = bb_img.get_rect().width
+        bb_rct.height = bb_img.get_rect().height
+        #画像のでかさ
+        avx = vx *  bb_accs[i]
+        avy = vy *  bb_accs[i]
+
        #練習３：端っこにぶつかったら反射させる
-        bb_rct.move_ip(vx, vy)
+        bb_rct.move_ip(avx, avy)
         y_bb, t_bb = check_bound(bb_rct)
         if y_bb == False:
             vx *= -1
