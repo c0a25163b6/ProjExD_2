@@ -24,11 +24,24 @@ def main():
         pg.K_RIGHT: (+5, 0),
     }
 
+    #練習２：赤い爆弾を作成
+    bb_img = pg.Surface((20, 20))
+    pg.draw.circle(bb_img, (255, 0, 0), (10, 10), 10)
+    bb_img.set_colorkey((0, 0, 0))
+
+    bb_rct = bb_img.get_rect()
+    bb_rct.center = 500, 300
+
+    #練習２：初期値座標
+    vx = +5
+    vy = +5
+
     tmr = 0
     while True:
         for event in pg.event.get():
             if event.type == pg.QUIT: 
                 return
+
         screen.blit(bg_img, [0, 0]) 
         #練習１：辞書の情報を取り出す
         sum_mv = [0, 0]
@@ -40,6 +53,10 @@ def main():
 
         kk_rct.move_ip(sum_mv)
         screen.blit(kk_img, kk_rct)
+
+        bb_rct.move_ip(vx, vy)
+        screen.blit(bb_img, bb_rct)
+
         pg.display.update()
         tmr += 1
         clock.tick(50)
