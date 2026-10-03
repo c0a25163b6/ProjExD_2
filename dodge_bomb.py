@@ -50,7 +50,7 @@ def game_over(screen: pg.Surface) -> None:
     pg.display.update()
     time.sleep(5)
 
-#演習課題２
+#演習課題２：加速度関数
 def init_bb_imgs() -> tuple[list[pg.Surface], list[int]]:
     bb_imgs = [] #爆弾用のリスト
 
@@ -66,11 +66,43 @@ def init_bb_imgs() -> tuple[list[pg.Surface], list[int]]:
     
     return bb_imgs, bb_accs
 
+#追加機能３：こうかとんの向き変更
+def init_kk_imgs() -> dict[tuple[int, int], pg.Surface]:
+    kk_img = pg.image.load("fig/3.png")
+    kk_dict = {} #角度の辞書
+    kk_move = [ #移動向きのリスト
+        (-5, 0),
+        (-5, -5),
+        (0, -5),
+        (+5, -5),
+        (+5, 0),
+        (+5, +5),
+        (0, +5),
+        (-5, +5),
+    ]
+
+    kk_dict[(0, 0)] = pg.transform.rotozoom(kk_img, 0, 0.9) #標準時は左向き
+
+    for i, m in enumerate(kk_move):
+        if m[0] > 0: #右向きの時は反転させて角度を調整
+            ck_img = pg.transform.flip(kk_img, True, False)
+            angle = -(i - 4) * 45
+        else: #それ以外は通常のものを使用
+            ck_img = kk_img
+            angle = -i * 45
+
+        kk_dict[m] = pg.transform.rotozoom(ck_img, angle, 0.9)
+
+    return kk_dict 
+
 def main():
     pg.display.set_caption("逃げろ！こうかとん")
     screen = pg.display.set_mode((WIDTH, HEIGHT))
     bg_img = pg.image.load("fig/pg_bg.jpg")    
-    kk_img = pg.transform.rotozoom(pg.image.load("fig/3.png"), 0, 0.9)
+
+    kk_imgs = init_kk_imgs()
+    
+    kk_img = kk_imgs[(0, 0)]
     kk_rct = kk_img.get_rect()
     kk_rct.center = 300, 200
     clock = pg.time.Clock()
@@ -107,6 +139,8 @@ def main():
                 sum_mv[1] += mv[1]
                 
         kk_rct.move_ip(sum_mv)
+        #ここで辞書を使う
+        kk_img = kk_imgs[tuple(sum_mv)]
 
         #練習３：横または縦で端っこにいるなら動けなくする
         y_kk, t_kk = check_bound(kk_rct)
