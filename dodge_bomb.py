@@ -2,10 +2,23 @@ import os
 import sys
 import pygame as pg
 
-
-WIDTH, HEIGHT = 1100, 650
+#練習３：画面サイズを変更
+WIDTH, HEIGHT = 800, 600
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
+#練習３：画面制限詳細
+def check_bound(obj_rect: pg.Rect) -> tuple[bool, bool]:
+    """
+    引数：こうかとんRectかばくだんRect
+    戻り値：タプル（横方向判定結果，縦方向判定結果）
+    画面内ならTrue，画面外ならFalse
+    """
+    yoko, tate = True, True
+    if obj_rect.left < 0 or WIDTH < obj_rect.right:
+        yoko = False        
+    if obj_rect.top < 0 or HEIGHT < obj_rect.bottom:
+        tate = False
+    return yoko, tate
 
 def main():
     pg.display.set_caption("逃げろ！こうかとん")
@@ -50,11 +63,22 @@ def main():
             if key_lst[key]:
                 sum_mv[0] += mv[0]
                 sum_mv[1] += mv[1]
-
+                
         kk_rct.move_ip(sum_mv)
+
+        #練習３：横または縦で端っこにいるなら動けなくする
+        y_kk, t_kk = check_bound(kk_rct)
+        if y_kk == False or t_kk == False:
+            kk_rct.move_ip(-sum_mv[0], -sum_mv[1])
         screen.blit(kk_img, kk_rct)
 
+       #練習３：端っこにぶつかったら反射させる
         bb_rct.move_ip(vx, vy)
+        y_bb, t_bb = check_bound(bb_rct)
+        if y_bb == False:
+            vx *= -1
+        if t_bb == False:
+            vy *= -1
         screen.blit(bb_img, bb_rct)
 
         pg.display.update()
