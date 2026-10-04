@@ -1,7 +1,6 @@
 import os
 import sys
 import pygame as pg
-import time
 
 #練習３：画面サイズを変更
 WIDTH, HEIGHT = 800, 600
@@ -48,7 +47,8 @@ def game_over(screen: pg.Surface) -> None:
     screen.blit(scr, [0, 0])
     #時間の設定
     pg.display.update()
-    time.sleep(5)
+    clock = pg.time.Clock()
+    clock.tick(0.2)
 
 #演習課題２：加速度関数
 def init_bb_imgs() -> tuple[list[pg.Surface], list[int]]:
@@ -95,6 +95,13 @@ def init_kk_imgs() -> dict[tuple[int, int], pg.Surface]:
 
     return kk_dict 
 
+#追加機能４：カウントダウン(タイマー)
+def game_time(screen: pg.Surface, tmr: int) -> None:
+    font = pg.font.Font(None, 40)
+    s = tmr // 50
+    timer = text = font.render(f"{s}", True, (255, 255, 255))
+    screen.blit(timer, [WIDTH // 2, 10])
+
 def main():
     pg.display.set_caption("逃げろ！こうかとん")
     screen = pg.display.set_mode((WIDTH, HEIGHT))
@@ -129,7 +136,12 @@ def main():
             if event.type == pg.QUIT: 
                 return
 
-        screen.blit(bg_img, [0, 0]) 
+        screen.blit(bg_img, [0, 0])
+
+        #タイマー設置
+        time = tmr // 50
+        game_time(screen, tmr)
+
         #練習１：辞書の情報を取り出す
         sum_mv = [0, 0]
         key_lst = pg.key.get_pressed()
