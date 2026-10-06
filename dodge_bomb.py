@@ -1,6 +1,8 @@
 import os
 import sys
 import pygame as pg
+import math
+import random
 
 #修正画面サイズ変更なし
 WIDTH, HEIGHT = 1100, 650
@@ -37,11 +39,11 @@ def game_over(screen: pg.Surface) -> None:
     scr.blit(text, text_rct)
     gok_img = pg.image.load("fig/8.png") 
     gok_rct = gok_img.get_rect()
-    gok_rct.center =  WIDTH / 2 - 200 , HEIGHT / 2 
+    gok_rct.center =  WIDTH / 2 - 200 , HEIGHT / 2  #位置を修正
     scr.blit(gok_img, gok_rct)
     #右のこうかとん
     gok_rct2 = gok_img.get_rect()
-    gok_rct2.center = WIDTH / 2 + 200 , HEIGHT / 2
+    gok_rct2.center = WIDTH / 2 + 200 , HEIGHT / 2 #位置を修正
     scr.blit(gok_img, gok_rct2)
 
     screen.blit(scr, [0, 0])
@@ -109,7 +111,7 @@ def init_kk_imgs() -> dict[tuple[int, int], pg.Surface]:
 def game_time(screen: pg.Surface, tmr: int) -> None:
     font = pg.font.Font(None, 40)
     s = tmr // 50
-    timer = text = font.render(f"{s}", True, (255, 255, 255))
+    timer = font.render(f"{s}", True, (255, 255, 255))
     screen.blit(timer, [WIDTH // 2, 10])
 
 #追加機能５：ダッシュモード
@@ -120,6 +122,18 @@ def act_dash(key_lst: list[bool], tmr: int, dash: int, sum_mv: list[int]) -> tup
         sum_mv[0] *= 5
         sum_mv[1] *= 5
     return dash, sum_mv
+
+#追加機能６：追従型機能
+def calc_orientation(org: pg.Rect, dst: pg.Rect, current_xy: tuple[float, float]) -> tuple[float, float]:
+    dx = org[0] - dst[0]
+    dy = org[1] - dst[1]
+    dist = math.sqrt(dx * dx + dy * dy) or 300
+    
+    #正規化
+    x = (dx / dist) * 5 
+    y = (dy / dist) * 5
+    current_xy  = (x, y)
+    return x, y
 
 def main():
     pg.display.set_caption("逃げろ！こうかとん")
@@ -149,8 +163,17 @@ def main():
     bb_rct = bb_img.get_rect()
     bb_rct.center = 400, 300
 
+    #追加課題6用（青色爆弾）
+    bb_img_h = pg.Surface((20, 20))
+    pg.draw.circle(bb_img_h, (0, 0, 255), (10, 10), 10)
+    bb_img_h.set_colorkey((0, 0, 0))
+
+    bb_rct_h = bb_img_h.get_rect()
+    hvx, hvy = +5, +5
+
     tmr = 0
     dash_tmr = -150
+    damage_tmr = 0
     while True:
         for event in pg.event.get():
             if event.type == pg.QUIT: 
@@ -165,12 +188,16 @@ def main():
         #練習１：辞書の情報を取り出す
         sum_mv = [0, 0]
         key_lst = pg.key.get_pressed()
-        for key, mv in DELTA.items():
-            if key_lst[key]:
-                sum_mv[0] += mv[0]
-                sum_mv[1] += mv[1]
 
-        dash_tmr, sum_mv = act_dash(key_lst, tmr, dash_tmr, sum_mv)
+        if damage_tmr > 0:
+            damage_tmr -= 1
+        else:
+            for key, mv in DELTA.items():
+                if key_lst[key]:
+                    sum_mv[0] += mv[0]
+                    sum_mv[1] += mv[1]
+
+            dash_tmr, sum_mv = act_dash(key_lst, tmr, dash_tmr, sum_mv)
                 
         kk_rct.move_ip(sum_mv)
         #ここで辞書を使う
@@ -201,10 +228,22 @@ def main():
             vy *= -1
         screen.blit(bb_img, bb_rct)
 
+        #追加機能6用
+        if time >= 10:
+            bb_rct_h.move_ip(hvx, hvy)
+            hvx, hvy = calc_orientation(kk_rct, bb_rct_h, (hvx , hvy))
+            screen.blit(bb_img_h, bb_rct_h)
+
         #練習４：衝突したら終了する
         if kk_rct.colliderect(bb_rct):
             game_over(screen) #ここで呼び出す
             return
+
+        if kk_rct.colliderect(bb_rct_h): #ホーミング用
+            if damage_tmr == 0:
+                damage_tmr = 50  #1秒間
+                bb_rct_h.center = random.randint(0, 1100), random.randint(0, 650)  #ホーミングをランダムにリセット
+
 
         pg.display.update()
         tmr += 1
