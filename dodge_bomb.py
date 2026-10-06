@@ -155,7 +155,7 @@ def act_dash(key_lst: list[bool], tmr: int, dash: int, sum_mv: list[int]) -> tup
 def calc_orientation(org: pg.Rect, dst: pg.Rect, current_xy: tuple[float, float]) -> tuple[float, float]:
     """
     引数：こうかとんの座標, 爆弾（青）の座標, 爆弾（青）の移動量
-    戻り値：タプル（爆弾の大きさリスト，爆弾の速さのリスト）
+    戻り値：タプル（x座標, y座標）
     10秒後から青色の爆弾が追尾してくるぞ
     """
     dx = org[0] - dst[0]  # x軸のベクトル
@@ -171,8 +171,9 @@ def calc_orientation(org: pg.Rect, dst: pg.Rect, current_xy: tuple[float, float]
 def main():
     pg.display.set_caption("逃げろ！こうかとん")
     screen = pg.display.set_mode((WIDTH, HEIGHT))
-    bg_img = pg.image.load("fig/pg_bg.jpg")    
-
+    bg_img = pg.image.load("fig/pg_bg.jpg")  
+    bg_img_flipped = pg.transform.flip(bg_img, True, False)  
+    
     kk_imgs = init_kk_imgs()
     
     kk_img = kk_imgs[(0, 0)]
@@ -212,7 +213,10 @@ def main():
             if event.type == pg.QUIT: 
                 return
 
-        screen.blit(bg_img, [0, 0])
+        x = tmr % 3200
+        screen.blit(bg_img, [-x, 0])
+        screen.blit(bg_img_flipped, [1600 - x, 0])
+        screen.blit(bg_img, [3200 - x, 0])
 
         # 追加機能４：タイマー設置
         time = tmr // 50
