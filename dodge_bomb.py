@@ -266,7 +266,7 @@ def main():
         screen.blit(bb_img, bb_rct)
 
         # 追加機能6用
-        if time >= 10:
+        if time >= 10: # 10秒後から青い爆弾が出る
             bb_rct_h.move_ip(hvx, hvy)
             hvx, hvy = calc_orientation(kk_rct, bb_rct_h, (hvx , hvy))
             screen.blit(bb_img_h, bb_rct_h)
