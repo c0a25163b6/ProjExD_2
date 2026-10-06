@@ -156,7 +156,7 @@ def calc_orientation(org: pg.Rect, dst: pg.Rect, current_xy: tuple[float, float]
     """
     引数：こうかとんの座標, 爆弾（青）の座標, 爆弾（青）の移動量
     戻り値：タプル（x座標, y座標）
-    10秒後から青色の爆弾が追尾してくるぞ
+    10秒後から青色の爆弾が追尾してくるぞ（青は触れると1秒間スタンする）
     """
     dx = org[0] - dst[0]  # x軸のベクトル
     dy = org[1] - dst[1]  # y軸のベクトル
@@ -279,7 +279,7 @@ def main():
         # 追加機能6用
         if kk_rct.colliderect(bb_rct_h): #ホーミング用
             if damage_tmr == 0:
-                damage_tmr = 50  #1秒間
+                damage_tmr = 50  #1秒間スタン
                 bb_rct_h.center = random.randint(0, 1100), random.randint(0, 650)  #ホーミングをランダムにリセット
 
         pg.display.update()
