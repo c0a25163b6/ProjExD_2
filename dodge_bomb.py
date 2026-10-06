@@ -2,8 +2,8 @@ import os
 import sys
 import pygame as pg
 
-#練習３：画面サイズを変更
-WIDTH, HEIGHT = 800, 600
+#修正画面サイズ変更なし
+WIDTH, HEIGHT = 1100, 650
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 #練習３：画面制限詳細
@@ -37,11 +37,11 @@ def game_over(screen: pg.Surface) -> None:
     scr.blit(text, text_rct)
     gok_img = pg.image.load("fig/8.png") 
     gok_rct = gok_img.get_rect()
-    gok_rct.center =  200, 300
+    gok_rct.center =  WIDTH / 2 - 200 , HEIGHT / 2 
     scr.blit(gok_img, gok_rct)
     #右のこうかとん
     gok_rct2 = gok_img.get_rect()
-    gok_rct2.center = 600, 300
+    gok_rct2.center = WIDTH / 2 + 200 , HEIGHT / 2
     scr.blit(gok_img, gok_rct2)
 
     screen.blit(scr, [0, 0])
@@ -69,6 +69,7 @@ def init_bb_imgs() -> tuple[list[pg.Surface], list[int]]:
 #追加機能３：こうかとんの向き変更
 def init_kk_imgs() -> dict[tuple[int, int], pg.Surface]:
     kk_img = pg.image.load("fig/3.png")
+    kkd_img = pg.image.load("fig/6.png")
     kk_dict = {} #角度の辞書
     kk_move = [ #移動向きのリスト
         (-5, 0),
@@ -90,8 +91,17 @@ def init_kk_imgs() -> dict[tuple[int, int], pg.Surface]:
         else: #それ以外は通常のものを使用
             ck_img = kk_img
             angle = -i * 45
-
         kk_dict[m] = pg.transform.rotozoom(ck_img, angle, 0.9)
+
+        #ダッシュ時用（追加課題5用）
+        if m[0] > 0:
+            dk_img = pg.transform.flip(kkd_img, True, False)
+            d_angle = -(i - 4) * 45
+        else: #それ以外は通常のものを使用
+            dk_img = kkd_img
+            d_angle = -i * 45
+        dash_m = (m[0] * 5, m[1] * 5)
+        kk_dict[dash_m] = pg.transform.rotozoom(dk_img, d_angle, 0.9)
 
     return kk_dict 
 
@@ -101,6 +111,15 @@ def game_time(screen: pg.Surface, tmr: int) -> None:
     s = tmr // 50
     timer = text = font.render(f"{s}", True, (255, 255, 255))
     screen.blit(timer, [WIDTH // 2, 10])
+
+#追加機能５：ダッシュモード
+def act_dash(key_lst: list[bool], tmr: int, dash: int, sum_mv: list[int]) -> tuple[int, list[int]]:
+    if key_lst[pg.K_SPACE] and (tmr - dash > 150):
+        dash = tmr
+    if tmr - dash < 5:
+        sum_mv[0] *= 5
+        sum_mv[1] *= 5
+    return dash, sum_mv
 
 def main():
     pg.display.set_caption("逃げろ！こうかとん")
@@ -131,6 +150,7 @@ def main():
     bb_rct.center = 400, 300
 
     tmr = 0
+    dash_tmr = -150
     while True:
         for event in pg.event.get():
             if event.type == pg.QUIT: 
@@ -149,6 +169,8 @@ def main():
             if key_lst[key]:
                 sum_mv[0] += mv[0]
                 sum_mv[1] += mv[1]
+
+        dash_tmr, sum_mv = act_dash(key_lst, tmr, dash_tmr, sum_mv)
                 
         kk_rct.move_ip(sum_mv)
         #ここで辞書を使う
